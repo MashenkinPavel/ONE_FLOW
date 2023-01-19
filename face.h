@@ -20,6 +20,12 @@ private:
 public:
     Face();
     ~Face();
+    void SetLCell(int lcell){
+        left_cell = lcell;
+    }
+    void SetRCell(int rcell){
+        right_cell = rcell;
+    }
     void AddNode(int nodenumber);
 
 };

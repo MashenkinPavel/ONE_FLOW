@@ -14,12 +14,12 @@ class Mesh{
     std::vector<Node> mNodeCoords;   //list of nodes coordinates
     std::vector<Face> mFaces;        //list of face (index topology)
     std::vector<Cell> mCells;        //list of cell (index topology)
-    bool Read_msh_tetrahedrons(std::string filename); //reading of tetraedrals msh file
+    bool Read_msh_tetrahedrons(const std::string& filename); //reading of tetraedrals msh file
 public:
     Mesh();
-    ~Mesh();
-    bool Read_msh_file(std::string filename); //reading of msh file
-    bool Write_vtk_file(std::string filename); //writing polyhedral mesh
+    ~Mesh() = default ;
+    bool Read_msh_file(const std::string& filename); //reading of msh file
+    bool Write_vtk_file(const std::string& filename); //writing polyhedral mesh
 };
 
 #endif

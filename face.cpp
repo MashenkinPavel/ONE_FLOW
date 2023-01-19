@@ -10,6 +10,8 @@ void Face::AddNode(int nodenumber) {
 
 Face::Face() {
     node_list.clear();
+    left_cell = -1;
+    right_cell = -1;
 }
 
 Face::~Face() {
