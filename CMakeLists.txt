@@ -8,4 +8,4 @@ include_directories(.)
 add_executable(ONE_FLOW
         main.cpp
         mesh.cpp
-        mesh.h node.cpp node.h face.cpp face.h cell.cpp cell.h)
+        mesh.h node.cpp node.h face.cpp face.h cell.cpp cell.h Rib.cpp Rib.h)

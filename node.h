@@ -4,12 +4,16 @@
 
 #ifndef ONE_FLOW_NODE_H
 #define ONE_FLOW_NODE_H
+#include <vector>
 
 class Node {
   private:
       double x;
       double y;
       double z;
+      std::vector<int> neib_nodes; //соседи к узлу через ребра
+      std::vector<int> neib_cells; //соседние к узлу ячейки
+
   public:
     Node()
     :x(0.0),y(0.0),z(0.0){
@@ -18,8 +22,7 @@ class Node {
     Node (double xx, double yy, double zz):x(xx),y(yy),z(zz){
 
     }
-    ~Node(){
-    }
+    ~Node() = default;
 
     void SetX(double x);
     void SetY(double y);

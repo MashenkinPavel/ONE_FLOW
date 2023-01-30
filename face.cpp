@@ -17,3 +17,18 @@ Face::Face() {
 Face::~Face() {
     node_list.clear();
 }
+
+std::vector<int> Face::GetNodeList() {
+    return node_list;
+}
+
+void Face::AddRib(const std::map< std::pair<int, int>, int >& mapNdsPairNumberToRibNum, int nodeInd1, int nodeInd2) {
+    if (nodeInd1>nodeInd2) std::swap(nodeInd1, nodeInd2);
+    std::pair<int,int> min_max = {nodeInd1,nodeInd2};
+    int rin_number = mapNdsPairNumberToRibNum.at(min_max);
+    rib_list.push_back( rin_number );
+}
+
+//void Face::GetNodeList(std::vector<int> &node_arr) {
+//    node_arr = node_list;//node_list
+//}

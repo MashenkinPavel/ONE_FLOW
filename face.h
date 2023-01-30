@@ -8,9 +8,12 @@
 
 #include <vector>
 #include "node.h"
+#include <map>
+
 
 class Face {
 private:
+    std::vector<int> rib_list; //список индексов ребер из которых состоит грань
     std::vector<int> node_list; // nodes list of nodes numbers in face
     int left_cell;              //index of left cell
     int right_cell;             //index of right cell
@@ -27,7 +30,8 @@ public:
         right_cell = rcell;
     }
     void AddNode(int nodenumber);
-
+    std::vector<int> GetNodeList();
+    void AddRib(const std::map<std::pair<int,int>,int>& mapNdsPairNumberToRibNum,int nodeInd1, int nodeInd2);
 };
 
 
