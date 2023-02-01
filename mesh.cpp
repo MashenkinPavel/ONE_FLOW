@@ -75,7 +75,7 @@ bool Mesh::Read_msh_tetrahedrons(const std::string &filename){
                 int max_ind=v2;
                 if (max_ind<min_ind) std::swap(max_ind,min_ind);
                 std::pair<int,int> temp_rib{min_ind,max_ind};
-                if (mapNdsPairNumberToRibNum.find(temp_rib)==mapNdsPairNumberToRibNum.end()){
+                if (mapNdsPairNumberToRibNum.find(temp_rib) == mapNdsPairNumberToRibNum.end()){
                     //добавляется новое ребро
                     mapNdsPairNumberToRibNum[{min_ind,max_ind}] = rib_counter;
                     //mRibs.push_back(Rib(min_ind,max_ind));
@@ -106,18 +106,19 @@ bool Mesh::Read_msh_tetrahedrons(const std::string &filename){
             facearr[0].AddRib(mapNdsPairNumberToRibNum,indexes[0],indexes[2]);
 
 
-            std::vector<int> face1{indexes[2],indexes[1],indexes[0]};
-            std::sort(face1.begin(),face1.end());
-            if (faces_nodes_ordered.find(face1)==faces_nodes_ordered.end()){
-                faces_nodes_ordered[face1] = face_counter;
+            std::vector<int> face0{indexes[2],indexes[1],indexes[0]};
+            std::sort(face0.begin(),face0.end());
+
+            if (faces_nodes_ordered.find(face0)==faces_nodes_ordered.end()){
+                faces_nodes_ordered[face0] = face_counter;
                 cellToFacesList[ncell].insert(face_counter);
-                face_counter++;
                 facearr[0].SetLCell(ncell);
                 mFaces.push_back(facearr[0]);
-
+                face_counter++;
             }else{
-                mFaces[faces_nodes_ordered[face1]].SetRCell(ncell);
-                cellToFacesList[ncell].insert(faces_nodes_ordered[face1]); //?  не точно , проверить нужно
+                int face_index = faces_nodes_ordered[face0];
+                mFaces[face_index].SetRCell(ncell);
+                cellToFacesList[ncell].insert(face_index); //?  не точно , проверить нужно
             }
 
             //second face
@@ -128,17 +129,19 @@ bool Mesh::Read_msh_tetrahedrons(const std::string &filename){
             facearr[1].AddRib(mapNdsPairNumberToRibNum,indexes[2],indexes[3]);
             facearr[1].AddRib(mapNdsPairNumberToRibNum,indexes[3],indexes[1]);
 
-            std::vector<int> face2{indexes[1],indexes[2],indexes[3]};
-            std::sort(face2.begin(),face2.end());
-            if (faces_nodes_ordered.find(face2)==faces_nodes_ordered.end()){
-                faces_nodes_ordered[face2] = face_counter;
+            std::vector<int> face1{indexes[1],indexes[2],indexes[3]};
+            std::sort(face1.begin(),face1.end());
+            if (faces_nodes_ordered.find(face1)==faces_nodes_ordered.end()){
+                faces_nodes_ordered[face1] = face_counter;
                 cellToFacesList[ncell].insert(face_counter);
-                face_counter++;
                 facearr[1].SetLCell(ncell);
                 mFaces.push_back(facearr[1]);
+                face_counter++;
             }else{
-                mFaces[faces_nodes_ordered[face2]].SetRCell(ncell);
-                cellToFacesList[ncell].insert(faces_nodes_ordered[face1]); //?  не точно , проверить нужно
+                facearr[1].SetRCell(ncell);
+                int face_index = faces_nodes_ordered[face1];
+                mFaces[face_index].SetRCell(ncell);
+                cellToFacesList[ncell].insert(face_index); //?  не точно , проверить нужно
             }
 
             //third face
@@ -149,17 +152,18 @@ bool Mesh::Read_msh_tetrahedrons(const std::string &filename){
             facearr[2].AddRib(mapNdsPairNumberToRibNum,indexes[2],indexes[0]);
             facearr[2].AddRib(mapNdsPairNumberToRibNum,indexes[0],indexes[3]);
 
-            std::vector<int> face3{indexes[3],indexes[2],indexes[0]};
-            std::sort(face3.begin(),face3.end());
-            if (faces_nodes_ordered.find(face3)==faces_nodes_ordered.end()){
-                faces_nodes_ordered[face3] = face_counter;
+            std::vector<int> face2{indexes[3],indexes[2],indexes[0]};
+            std::sort(face2.begin(),face2.end());
+            if (faces_nodes_ordered.find(face2)==faces_nodes_ordered.end()){
+                faces_nodes_ordered[face2] = face_counter;
                 cellToFacesList[ncell].insert(face_counter);
-                face_counter++;
                 facearr[2].SetLCell(ncell);
                 mFaces.push_back(facearr[2]);
+                face_counter++;
             }else{
-                mFaces[faces_nodes_ordered[face3]].SetRCell(ncell);
-                cellToFacesList[ncell].insert(faces_nodes_ordered[face1]); //?  не точно , проверить нужно
+                int face_index = faces_nodes_ordered[face2];
+                mFaces[face_index].SetRCell(ncell);
+                cellToFacesList[ncell].insert(face_index); //?  не точно , проверить нужно
             }
 
             //forth face
@@ -170,17 +174,18 @@ bool Mesh::Read_msh_tetrahedrons(const std::string &filename){
             facearr[3].AddRib(mapNdsPairNumberToRibNum,indexes[1],indexes[3]);
             facearr[3].AddRib(mapNdsPairNumberToRibNum,indexes[3],indexes[0]);
 
-            std::vector<int> face4{indexes[0],indexes[1],indexes[3]};
-            std::sort(face4.begin(),face4.end());
-            if (faces_nodes_ordered.find(face4)==faces_nodes_ordered.end()){
-                faces_nodes_ordered[face4] = face_counter;
+            std::vector<int> face3{indexes[0],indexes[1],indexes[3]};
+            std::sort(face3.begin(),face3.end());
+            if (faces_nodes_ordered.find(face3)==faces_nodes_ordered.end()){
+                faces_nodes_ordered[face3] = face_counter;
                 cellToFacesList[ncell].insert(face_counter);
-                face_counter++;
                 facearr[3].SetLCell(ncell);
                 mFaces.push_back(facearr[3]);
+                face_counter++;
             }else{
-                mFaces[faces_nodes_ordered[face4]].SetRCell(ncell);
-                cellToFacesList[ncell].insert(faces_nodes_ordered[face1]); //?  не точно , проверить нужно
+                int face_index = faces_nodes_ordered[face3];
+                mFaces[face_index].SetRCell(ncell);
+                cellToFacesList[ncell].insert(face_index); //?  не точно , проверить нужно
             }
             ncell++;
         }else{
@@ -200,6 +205,7 @@ bool Mesh::Read_msh_tetrahedrons(const std::string &filename){
     std::cout<<"Cells_count = "<<cells_count<<std::endl;
     std::cout<<"Face_count = "<<faces_count<<std::endl;
 
+    //return true;
     prepare_all_mesh_data();
     return true;
 }
@@ -216,7 +222,7 @@ bool Mesh::Write_vtk_file(const std::string &filename) {
     out<<"# vtk DataFile Version 2.0"<<"\n";
     out<<"Unstructured Grid Example"<<"\n";
     out<<"ASCII"<<"\n\n";
-    out<<"DATASET UNSTRUCTURED_GRID";
+    out<<"DATASET UNSTRUCTURED_GRID\n";
     out<<"POINTS "<<nodes_count<<" float\n";
     for (int i=0;i<nodes_count;++i){
         out<<mNodeCoords[i].GetX()<<" "<<\
@@ -230,16 +236,33 @@ bool Mesh::Write_vtk_file(const std::string &filename) {
         out<<17<<" "<<4<<"\n";
 
         std::vector<int> facelst = mCells[i].CellGetFaceList();
+
         for (int i=0;i<facelst.size();i++){
             std::vector<int> nd_list = mFaces [facelst[i]].GetNodeList();
             out<<3<<" "<< nd_list[0]<<" "<<nd_list[1]<<" "<<nd_list[2]<<"\n";
         }
     }
+    out<<"CELL_TYPES "<<cells_count<<"\n";
+    for (int i=0;i<cells_count;i++) out<<42<<"\n";
     out.close();
     std::cout<<"Mesh writing is complite!\n";
     return true;
 }
 
 void Mesh::prepare_all_mesh_data() {
-
+    int cell_count = cellToFacesList.size();
+    mCells.resize(cell_count);
+    for (auto item:cellToFacesList){
+        int cellnum = item.first;
+        std::set<int> facelist = item.second;
+        std::vector<int> vecfacelist(facelist.size());
+        int i=0;
+        for (auto it:facelist){
+            vecfacelist[i] = it;
+            i++;
+        }
+        Cell objcell;
+        objcell.CellSetFaceList(vecfacelist);
+        mCells[cellnum] = objcell;
+    }
 }

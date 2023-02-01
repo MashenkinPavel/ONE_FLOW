@@ -20,6 +20,9 @@ private:
 
 public:
     std::vector<int> CellGetFaceList();
+    void CellSetFaceList(std::vector<int> facelist){
+        mFaces = facelist;
+    }
 
 
 

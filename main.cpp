@@ -7,6 +7,8 @@ int main(int argc, char* argv[]){
 
     Mesh mesh;
     mesh.Read_msh_file("./test_data/mesh.msh");
+    //mesh.Read_msh_file("./test_data/mesh_1tetr.msh");
+    //mesh.Read_msh_file("./test_data/mesh_2tetr.msh");
     mesh.Write_vtk_file("./test_data/my_vers_mesh.vtk");
 
     return 0;
