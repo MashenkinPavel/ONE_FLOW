@@ -2,8 +2,7 @@
 // Created by pavel on 18.01.2023.
 //
 
-#ifndef ONE_FLOW_FACE_H
-#define ONE_FLOW_FACE_H
+#pragma once
 
 
 #include <vector>
@@ -33,6 +32,3 @@ public:
     std::vector<int> GetNodeList();
     void AddRib(const std::map<std::pair<int,int>,int>& mapNdsPairNumberToRibNum,int nodeInd1, int nodeInd2);
 };
-
-
-#endif //ONE_FLOW_FACE_H

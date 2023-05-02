@@ -1,9 +1,8 @@
 //
 // Created by pavel on 18.01.2023.
 //
+#pragma once
 
-#ifndef ONE_FLOW_NODE_H
-#define ONE_FLOW_NODE_H
 #include <vector>
 
 class Node {
@@ -39,4 +38,3 @@ class Node {
     }
 };
 
-#endif //ONE_FLOW_NODE_H

@@ -1,14 +1,13 @@
-#ifndef ONE_FLOW_MESH_H
-#define ONE_FLOW_MESH_H
-
+#pragma once
 #include "node.h"
 #include "face.h"
 #include "cell.h"
 #include "Rib.h"
-
 #include <vector>
 #include <string>
 #include <map>
+
+
 class Mesh{
     int nodes_count;
     int ribs_count;
@@ -36,5 +35,3 @@ public:
     bool Read_msh_file(const std::string& filename); //reading of msh file
     bool Write_vtk_file(const std::string& filename); //writing polyhedral mesh
 };
-
-#endif
