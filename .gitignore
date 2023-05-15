@@ -2,3 +2,8 @@
 /.git
 /.idea
 /test_data
+*.txt
+/CMakeFiles
+Makefile
+cmake_install.cmake
+ONE_FLOW
