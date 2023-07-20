@@ -15,7 +15,7 @@ private:
     std::vector<int> mFaces; //ячейка знает инфу по своим граням
 
 public:
-    std::vector<int> CellGetFaceList();
+    const std::vector<int>& CellGetFaceList() const;
     void CellSetFaceList(std::vector<int> facelist){
         mFaces = facelist;
     }

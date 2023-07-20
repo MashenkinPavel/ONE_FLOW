@@ -18,7 +18,7 @@ Face::~Face() {
     node_list.clear();
 }
 
-std::vector<int> Face::GetNodeList() {
+const std::vector<int>& Face::GetNodeList() const {
     return node_list;
 }
 

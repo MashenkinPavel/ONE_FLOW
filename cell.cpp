@@ -5,7 +5,7 @@
 #include "cell.h"
 #include <vector>
 
-std::vector<int> Cell::CellGetFaceList() {
-    std::vector<int> out = mFaces;
-    return out;
+const std::vector<int>& Cell::CellGetFaceList() const {
+    //std::vector<int> out = mFaces;
+    return mFaces;
 }
