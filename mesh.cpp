@@ -210,8 +210,71 @@ bool Mesh::Read_msh_tetrahedrons(const std::string &filename){
     return true;
 }
 
+
+bool Mesh::Read_SU2_file(const std::string &filename){
+    std::string keyword;
+    std::ifstream input(filename);
+    if (!input) return false;
+    int ndim=-1;
+    input>>keyword;
+    input>>ndim;
+    
+    int nelem=-1;
+    input>>keyword;
+    input>>nelem;
+
+
+    int type=-1;
+    for (int i=0;i<nelem;i++){
+        input>>type;
+
+        if (type == 5){
+            int Node[4];
+            for (int j =0;j<4;j++){
+                input>>Node[j];
+            }
+        }
+    }
+
+    int npoints = -1;
+    input>>keyword;
+    input>>npoints;
+
+    int locnum=-1;
+    double R[3];
+    for (int i =0;i<npoints;i++){
+        input>>R[0];
+        input>>R[1];
+        input>>locnum;
+    }
+
+//NMARK
+    int NMARKl;
+
+    
+    input>>keyword;
+    input>>NMARKl;
+    for (int i=0;i<NMARKl;i++){
+        std::string marker_tag;
+        input>>keyword;
+        input>>marker_tag;
+
+        int marker_elems=-1;
+        input>>keyword;
+        input>>marker_elems;
+        for (int j=0;j<marker_elems;j++){
+            int num=-1;
+            int vert[3]{0,0,0};
+            input>>num;
+            input>>vert[0];
+            input>>vert[1];
+        }
+    }
+    input.close();
+    return true;
+}
 //запись полиэдральной сетки в формате VTK
-bool Mesh::Write_vtk_file(const std::string &filename) {
+bool Mesh::Write_vtk_file(const std::string &filename) const {
     std::cout<<"Writing vtk file "<<filename<<" is started\n";
     std::ofstream out(filename);
     if (!out){
@@ -225,9 +288,15 @@ bool Mesh::Write_vtk_file(const std::string &filename) {
     out<<"DATASET UNSTRUCTURED_GRID\n";
     out<<"POINTS "<<nodes_count<<" float\n";
     for (int i=0;i<nodes_count;++i){
-        out<<mNodeCoords[i].GetX()<<" "<<\
-             mNodeCoords[i].GetY()<<" "<<\
-             mNodeCoords[i].GetZ()<<"\n";
+        out<<mNodeCoords.at(i).GetX()<<" "<<\
+             mNodeCoords.at(i).GetY()<<" "<<\
+             mNodeCoords.at(i).GetZ()<<" "<<"\n";
+
+
+
+ //       out<<mNodeCoords[i].GetX()<<" "<<\
+ //            mNodeCoords[i].GetY()<<" "<<\
+ //            mNodeCoords[i].GetZ()<<"\n";
     }
 
 
@@ -235,10 +304,10 @@ bool Mesh::Write_vtk_file(const std::string &filename) {
     for (int i=0;i<cells_count;i++){
         out<<17<<" "<<4<<"\n";
 
-        std::vector<int> facelst = mCells[i].CellGetFaceList();
+        const std::vector<int>& facelst = mCells.at(i).CellGetFaceList();//mCells[i].CellGetFaceList();
 
         for (int i=0;i<facelst.size();i++){
-            std::vector<int> nd_list = mFaces [facelst[i]].GetNodeList();
+            std::vector<int> nd_list = mFaces.at(facelst.at(i)).GetNodeList();
             out<<3<<" "<< nd_list[0]<<" "<<nd_list[1]<<" "<<nd_list[2]<<"\n";
         }
     }
@@ -248,6 +317,9 @@ bool Mesh::Write_vtk_file(const std::string &filename) {
     std::cout<<"Mesh writing is complite!\n";
     return true;
 }
+
+
+
 
 void Mesh::prepare_all_mesh_data() {
     int cell_count = cellToFacesList.size();
