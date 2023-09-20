@@ -6,6 +6,5 @@
 #include <vector>
 
 const std::vector<int>& Cell::CellGetFaceList() const {
-    //std::vector<int> out = mFaces;
     return mFaces;
 }

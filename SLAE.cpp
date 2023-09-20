@@ -152,3 +152,30 @@ print this info to the screen at the conclusion of KSPSolve().
     PetscCall(PetscFinalize());
     return 1; 
 }
+
+
+
+int testfunc2(int argc, char* argv[]){
+    //test 1_d
+    double L=100.0;
+    int Nx = 100.0;
+    double dx = L/Nx;
+    PetscInitialize(&argc,&argv,NULL,NULL);
+    PetscInt myint;
+    PetscBool set;
+    PetscOptionsGetInt(NULL,NULL,"-myint",&myint,&set);
+    PetscPrintf(PETSC_COMM_WORLD,"HELLO PETSc\n");
+    PetscInt M=Nx;
+    PetscInt m;
+    PetscSplitOwnership(PETSC_COMM_WORLD,&m,&M);
+
+
+    Mat A;
+    Vec x,b;
+
+
+
+
+
+    PetscFinalize();
+}
