@@ -381,24 +381,25 @@ bool Mesh::Read_SU2_file(const std::string &filename){
             int vert_ind[8];
             for (int j=0;j<8;j++){
                 int shift = 0;
-                if (j>=4) shift=mesh_2d_base.size();
+                if (j>=4) shift=npoints;
 
                 vert_ind[ j ]  =  mesh_2d_base[i][j%4] + shift;
                 //TODO check this function
             }
 
-            //DOWN_FACE
+            //DOWN_FACE RIBS
             elem_to_rib(vert_ind[0],vert_ind[1]);
             elem_to_rib(vert_ind[1],vert_ind[2]);
             elem_to_rib(vert_ind[2],vert_ind[3]);
             elem_to_rib(vert_ind[3],vert_ind[0]);
 
-            //UP_FACE
+            //UP_FACE RIBS
             elem_to_rib(vert_ind[0+4],vert_ind[1+4]);
             elem_to_rib(vert_ind[1+4],vert_ind[2+4]);
             elem_to_rib(vert_ind[2+4],vert_ind[3+4]);
             elem_to_rib(vert_ind[3+4],vert_ind[0+4]);
-            
+
+            //VERTICAL RIBS
             elem_to_rib(vert_ind[0],vert_ind[4]);
             elem_to_rib(vert_ind[1],vert_ind[5]);
             elem_to_rib(vert_ind[2],vert_ind[6]);
@@ -407,38 +408,187 @@ bool Mesh::Read_SU2_file(const std::string &filename){
 
 
             // для граней обход против часовой стрелки нормаль наружу
-            //first face
+
+
             Face facearr[6];
-            facearr[0].AddNode(vert_ind[0]);
-            facearr[0].AddNode(vert_ind[1]);
-            facearr[0].AddNode(vert_ind[2]);
-            facearr[0].AddNode(vert_ind[3]);
 
-            facearr[0].AddRib(mapNdsPairNumberToRibNum,vert_ind[0],vert_ind[1]);
-            facearr[0].AddRib(mapNdsPairNumberToRibNum,vert_ind[1],vert_ind[2]);
-            facearr[0].AddRib(mapNdsPairNumberToRibNum,vert_ind[2],vert_ind[3]);
-            facearr[0].AddRib(mapNdsPairNumberToRibNum,vert_ind[3],vert_ind[0]);
+            //down face
+            {
+                facearr[0].AddNode(vert_ind[0]);
+                facearr[0].AddNode(vert_ind[3]);
+                facearr[0].AddNode(vert_ind[2]);
+                facearr[0].AddNode(vert_ind[1]);
 
-            std::vector<int> face0{vert_ind[0],vert_ind[1],vert_ind[2],vert_ind[3]};
-            std::sort(face0.begin(),face0.end());
+                facearr[0].AddRib(mapNdsPairNumberToRibNum,vert_ind[0],vert_ind[1]);
+                facearr[0].AddRib(mapNdsPairNumberToRibNum,vert_ind[1],vert_ind[2]);
+                facearr[0].AddRib(mapNdsPairNumberToRibNum,vert_ind[2],vert_ind[3]);
+                facearr[0].AddRib(mapNdsPairNumberToRibNum,vert_ind[3],vert_ind[0]);
 
-            if (faces_nodes_ordered.find(face0)==faces_nodes_ordered.end()){
-                faces_nodes_ordered[face0] = face_counter;
-                cellToFacesList[ncell].insert(face_counter);
-                facearr[0].SetLCell(ncell);
-                mFaces.push_back(facearr[0]);
-                face_counter++;
-            }else{
-                int face_index = faces_nodes_ordered[face0];
-                mFaces[face_index].SetRCell(ncell);
-                cellToFacesList[ncell].insert(face_index); //?  не точно , проверить нужно
+                std::vector<int> face0{vert_ind[0],vert_ind[1],vert_ind[2],vert_ind[3]};
+                std::sort(face0.begin(),face0.end());
+
+                if (faces_nodes_ordered.find(face0)==faces_nodes_ordered.end()){
+                    faces_nodes_ordered[face0] = face_counter;
+                    cellToFacesList[ncell].insert(face_counter);
+                    facearr[0].SetLCell(ncell);
+                    mFaces.push_back(facearr[0]);
+                    face_counter++;
+                }else {
+                    int face_index = faces_nodes_ordered[face0];
+                    mFaces[face_index].SetRCell(ncell);
+                    cellToFacesList[ncell].insert(face_index); //?  не точно , проверить нужно
+                }
             }
-            
-            //second face....
+
+
+            // TODO second face....3,4,5,6 faces
+            //up face
+            {
+                facearr[1].AddNode(vert_ind[4]);
+                facearr[1].AddNode(vert_ind[5]);
+                facearr[1].AddNode(vert_ind[6]);
+                facearr[1].AddNode(vert_ind[7]);
+
+                facearr[1].AddRib(mapNdsPairNumberToRibNum,vert_ind[4],vert_ind[5]);
+                facearr[1].AddRib(mapNdsPairNumberToRibNum,vert_ind[5],vert_ind[6]);
+                facearr[1].AddRib(mapNdsPairNumberToRibNum,vert_ind[6],vert_ind[7]);
+                facearr[1].AddRib(mapNdsPairNumberToRibNum,vert_ind[7],vert_ind[4]);
+
+                std::vector<int> face0{vert_ind[4],vert_ind[5],vert_ind[6],vert_ind[7]};
+                std::sort(face0.begin(),face0.end());
+
+                if (faces_nodes_ordered.find(face0)==faces_nodes_ordered.end()){
+                    faces_nodes_ordered[face0] = face_counter;
+                    cellToFacesList[ncell].insert(face_counter);
+                    facearr[1].SetLCell(ncell);
+                    mFaces.push_back(facearr[1]);
+                    face_counter++;
+                }else {
+                    int face_index = faces_nodes_ordered[face0];
+                    mFaces[face_index].SetRCell(ncell);
+                    cellToFacesList[ncell].insert(face_index); //?  не точно , проверить нужно
+                }
+            }
+
+            //left face
+            {
+                facearr[2].AddNode(vert_ind[0]);
+                facearr[2].AddNode(vert_ind[4]);
+                facearr[2].AddNode(vert_ind[7]);
+                facearr[2].AddNode(vert_ind[3]);
+
+                facearr[2].AddRib(mapNdsPairNumberToRibNum,vert_ind[0],vert_ind[4]);
+                facearr[2].AddRib(mapNdsPairNumberToRibNum,vert_ind[4],vert_ind[7]);
+                facearr[2].AddRib(mapNdsPairNumberToRibNum,vert_ind[7],vert_ind[3]);
+                facearr[2].AddRib(mapNdsPairNumberToRibNum,vert_ind[3],vert_ind[0]);
+
+                std::vector<int> face0{vert_ind[0],vert_ind[4],vert_ind[7],vert_ind[3]};
+                std::sort(face0.begin(),face0.end());
+
+                if (faces_nodes_ordered.find(face0)==faces_nodes_ordered.end()){
+                    faces_nodes_ordered[face0] = face_counter;
+                    cellToFacesList[ncell].insert(face_counter);
+                    facearr[2].SetLCell(ncell);
+                    mFaces.push_back(facearr[2]);
+                    face_counter++;
+                }else {
+                    int face_index = faces_nodes_ordered[face0];
+                    mFaces[face_index].SetRCell(ncell);
+                    cellToFacesList[ncell].insert(face_index); //?  не точно , проверить нужно
+                }
+            }
+
+            //right face
+            {
+                facearr[3].AddNode(vert_ind[1]);
+                facearr[3].AddNode(vert_ind[2]);
+                facearr[3].AddNode(vert_ind[6]);
+                facearr[3].AddNode(vert_ind[5]);
+
+                facearr[3].AddRib(mapNdsPairNumberToRibNum,vert_ind[1],vert_ind[2]);
+                facearr[3].AddRib(mapNdsPairNumberToRibNum,vert_ind[2],vert_ind[6]);
+                facearr[3].AddRib(mapNdsPairNumberToRibNum,vert_ind[6],vert_ind[5]);
+                facearr[3].AddRib(mapNdsPairNumberToRibNum,vert_ind[5],vert_ind[1]);
+
+                std::vector<int> face0{vert_ind[1],vert_ind[2],vert_ind[6],vert_ind[5]};
+                std::sort(face0.begin(),face0.end());
+
+                if (faces_nodes_ordered.find(face0)==faces_nodes_ordered.end()){
+                    faces_nodes_ordered[face0] = face_counter;
+                    cellToFacesList[ncell].insert(face_counter);
+                    facearr[3].SetLCell(ncell);
+                    mFaces.push_back(facearr[3]);
+                    face_counter++;
+                }else {
+                    int face_index = faces_nodes_ordered[face0];
+                    mFaces[face_index].SetRCell(ncell);
+                    cellToFacesList[ncell].insert(face_index); //?  не точно , проверить нужно
+                }
+            }
+
+
+            //front face
+            {
+                facearr[4].AddNode(vert_ind[0]);
+                facearr[4].AddNode(vert_ind[1]);
+                facearr[4].AddNode(vert_ind[5]);
+                facearr[4].AddNode(vert_ind[4]);
+
+                facearr[4].AddRib(mapNdsPairNumberToRibNum,vert_ind[0],vert_ind[1]);
+                facearr[4].AddRib(mapNdsPairNumberToRibNum,vert_ind[1],vert_ind[5]);
+                facearr[4].AddRib(mapNdsPairNumberToRibNum,vert_ind[5],vert_ind[4]);
+                facearr[4].AddRib(mapNdsPairNumberToRibNum,vert_ind[4],vert_ind[0]);
+
+                std::vector<int> face0{vert_ind[0],vert_ind[1],vert_ind[5],vert_ind[4]};
+                std::sort(face0.begin(),face0.end());
+
+                if (faces_nodes_ordered.find(face0)==faces_nodes_ordered.end()){
+                    faces_nodes_ordered[face0] = face_counter;
+                    cellToFacesList[ncell].insert(face_counter);
+                    facearr[4].SetLCell(ncell);
+                    mFaces.push_back(facearr[4]);
+                    face_counter++;
+                }else {
+                    int face_index = faces_nodes_ordered[face0];
+                    mFaces[face_index].SetRCell(ncell);
+                    cellToFacesList[ncell].insert(face_index); //?  не точно , проверить нужно
+                }
+            }
+
+            //back face
+            {
+                facearr[5].AddNode(vert_ind[3]);
+                facearr[5].AddNode(vert_ind[7]);
+                facearr[5].AddNode(vert_ind[6]);
+                facearr[5].AddNode(vert_ind[2]);
+
+                facearr[5].AddRib(mapNdsPairNumberToRibNum,vert_ind[3],vert_ind[7]);
+                facearr[5].AddRib(mapNdsPairNumberToRibNum,vert_ind[7],vert_ind[6]);
+                facearr[5].AddRib(mapNdsPairNumberToRibNum,vert_ind[6],vert_ind[2]);
+                facearr[5].AddRib(mapNdsPairNumberToRibNum,vert_ind[2],vert_ind[3]);
+
+                std::vector<int> face0{vert_ind[3],vert_ind[7],vert_ind[6],vert_ind[2]};
+                std::sort(face0.begin(),face0.end());
+
+                if (faces_nodes_ordered.find(face0)==faces_nodes_ordered.end()){
+                    faces_nodes_ordered[face0] = face_counter;
+                    cellToFacesList[ncell].insert(face_counter);
+                    facearr[5].SetLCell(ncell);
+                    mFaces.push_back(facearr[5]);
+                    face_counter++;
+                }else {
+                    int face_index = faces_nodes_ordered[face0];
+                    mFaces[face_index].SetRCell(ncell);
+                    cellToFacesList[ncell].insert(face_index); //?  не точно , проверить нужно
+                }
+            }
             ncell++;
+            continue;
         }//if (nvert2d == 4)
 
 
+        //====================================================================================
+        //triangle element
         if (nvert2d == 3){ // if  triangles
             auto elem_to_rib=[&](int v1, int v2){
                 int min_ind=v1;
@@ -630,13 +780,9 @@ bool Mesh::Read_SU2_file(const std::string &filename){
                     cellToFacesList[ncell].insert(face_index); //?  не точно , проверить нужно
                 }
             }
-
             ncell++;
+            continue;
         }//if (nvert2d == 3)
-
-
-
-
     }//for (int i=0;i<mesh_2d_base.size();i++)
 
     ribs_count = rib_counter;
@@ -676,7 +822,7 @@ bool Mesh::Write_vtk_file(const std::string &filename) const {
     }
 
 
-    const bool triangles = true;
+    const bool triangles = false;
     if (triangles){
         out<<"CELLS "<<cells_count<<" "<<25*cells_count<<"\n";
         for (int i=0;i<cells_count;i++){
@@ -692,17 +838,21 @@ bool Mesh::Write_vtk_file(const std::string &filename) const {
         }
     }
 
-    const bool hex = false;
+    const bool hex = true;
     if (hex){
-        out<<"CELLS "<<cells_count<<" "<<21*cells_count + cells_count<<"\n";
+        out<<"CELLS "<<cells_count<<" "<<31*cells_count + cells_count<<"\n";
         for (int i=0;i<cells_count;i++){
-            out<<21<<" "<<5<<"\n";
+            out<<31<<" "<<6<<"\n";
 
             const std::vector<int>& facelst = mCells.at(i).CellGetFaceList();//mCells[i].CellGetFaceList();
 
-            for (int i=0;i<facelst.size();i++){
-                std::vector<int> nd_list = mFaces.at(facelst.at(i)).GetNodeList();
-                out<<3<<" "<< nd_list[0]<<" "<<nd_list[1]<<" "<<nd_list[2]<<"\n";
+            for (const auto& it:facelst){
+                out<<mFaces.at(it).GetNodeList().size();
+                auto tempvar = mFaces.at(it).GetNodeList();
+                for (auto nodes:mFaces.at(it).GetNodeList()){
+                    out<<" "<<nodes;
+                }
+                out<<"\n";
             }
         }
     }

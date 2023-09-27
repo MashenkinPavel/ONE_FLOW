@@ -77,11 +77,46 @@ int test_mesh_reading(){
         catch(...){
             printf("OK:    test on  problem finding file complite.\n");
         }
-
-
     }
 
-    if (true)
+    if (false){
+        try {
+            Mesh mesh;
+            if (mesh.Read_SU2_file("/home/pavel/STORAGE/WORK/CFD_PROGS/ONE_FLOW/test_data/cell1.su2")){
+                printf("SU2 file read OK!\n");
+                //mesh.Write_vtk_file("/home/pavel/STORAGE/WORK/CFD_PROGS/ONE_FLOW/test_data/unsteady_naca0012_mesh.vtk");
+                mesh.Write_vtk_file("/home/pavel/STORAGE/WORK/CFD_PROGS/ONE_FLOW/test_data/cell1.vtk");
+            }else{
+                throw std::runtime_error("can't read SU2 mesh testfile");
+            }
+        }
+        catch(...){
+            printf("OK:    test on  problem finding file complite.\n");
+        }
+    }
+
+    if (true){
+        try {
+            Mesh mesh;
+
+
+            if (mesh.Read_SU2_file("/home/pavel/STORAGE/WORK/CFD_PROGS/ONE_FLOW/test_data/unsteady_naca0012_mesh.su2")){
+                printf("SU2 file read OK!\n");
+                mesh.Write_vtk_file("/home/pavel/STORAGE/WORK/CFD_PROGS/ONE_FLOW/test_data/unsteady_naca0012_mesh.vtk");
+            }else{
+                throw std::runtime_error("can't read SU2 mesh testfile");
+            }
+        }
+        catch(...){
+            printf("OK:    test on  problem finding file complite.\n");
+        }
+    }
+
+
+
+
+
+    if (false)
     {
         try {
             Mesh mesh;
