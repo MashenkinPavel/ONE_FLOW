@@ -27,13 +27,13 @@ class Node {
     void SetY(double y);
     void SetZ(double z);
 
-    double GetX(){
+    double GetX()const{
         return x;
     }
-    double GetY(){
+    double GetY()const{
         return y;
     }
-    double GetZ(){
+    double GetZ()const{
         return z;
     }
 };

@@ -29,6 +29,6 @@ public:
         right_cell = rcell;
     }
     void AddNode(int nodenumber);
-    std::vector<int> GetNodeList();
+    const std::vector<int>& GetNodeList() const ;
     void AddRib(const std::map<std::pair<int,int>,int>& mapNdsPairNumberToRibNum,int nodeInd1, int nodeInd2);
 };

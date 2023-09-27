@@ -33,5 +33,6 @@ public:
     Mesh();
     ~Mesh() = default ;
     bool Read_msh_file(const std::string& filename); //reading of msh file
-    bool Write_vtk_file(const std::string& filename); //writing polyhedral mesh
+    bool Write_vtk_file(const std::string& filename) const; //writing polyhedral mesh
+    bool Read_SU2_file(const std::string &filename);
 };

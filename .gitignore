@@ -1,9 +1,15 @@
 /cmake-build-debug
 /.git
+/.vscode
 /.idea
 /test_data
+<<<<<<< HEAD
 *.txt
 /CMakeFiles
+CMakeCache.txt
 Makefile
 cmake_install.cmake
+/build
 ONE_FLOW
+cmake_install.cmake
+ONE_FLOW.cbp
