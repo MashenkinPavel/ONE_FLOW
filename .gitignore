@@ -3,7 +3,7 @@
 /.vscode
 /.idea
 /test_data
-<<<<<<< HEAD
+*.vtk
 *.txt
 /CMakeFiles
 CMakeCache.txt

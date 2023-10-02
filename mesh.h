@@ -6,7 +6,7 @@
 #include <vector>
 #include <string>
 #include <map>
-
+#include <memory>
 
 class Mesh{
     int nodes_count;
@@ -33,6 +33,24 @@ public:
     Mesh();
     ~Mesh() = default ;
     bool Read_msh_file(const std::string& filename); //reading of msh file
-    bool Write_vtk_file(const std::string& filename) const; //writing polyhedral mesh
     bool Read_SU2_file(const std::string &filename);
+    bool Write_vtk_file(const std::string& filename) const; //writing polyhedral mesh
+    bool Write_vtk_file_and_data(const std::string &filename, std::shared_ptr<double[]>& data)const ;
+    //tools for preparing solver
+    size_t GetFaceCount() const{
+        return faces_count;
+    }
+    const Face& GetFace(int iface) const{
+        return mFaces[iface];
+    }
+
+    size_t GetCellCount(){
+        return cells_count;
+
+    }
+
+
+
+
+
 };

@@ -3,6 +3,8 @@
 #include <iostream>
 #include <map>
 #include <algorithm>
+#include <bits/shared_ptr.h>
+
 Mesh::Mesh() {
     nodes_count = 0;
     ribs_count = 0;
@@ -868,6 +870,84 @@ bool Mesh::Write_vtk_file(const std::string &filename) const {
     return true;
 }
 
+
+bool Mesh::Write_vtk_file_and_data(const std::string &filename, std::shared_ptr<double[]>& data) const {
+    std::cout<<"Writing vtk file "<<filename<<" is started\n";
+    std::ofstream out(filename);
+    if (!out){
+        std::cerr<<"Can not open file"<<filename<<" for writing\n";
+        return false;
+    }
+    //out<<"Mesh size = "<<cells_count<<"\n";
+    out<<"# vtk DataFile Version 2.0"<<"\n";
+    out<<"Unstructured Grid Example"<<"\n";
+    out<<"ASCII"<<"\n\n";
+    out<<"DATASET UNSTRUCTURED_GRID\n";
+    out<<"POINTS "<<nodes_count<<" float\n";
+    for (int i=0;i<nodes_count;++i){
+        out<<mNodeCoords.at(i).GetX()<<" "<<\
+             mNodeCoords.at(i).GetY()<<" "<<\
+             mNodeCoords.at(i).GetZ()<<" "<<"\n";
+    }
+
+
+    const bool triangles = false;
+    if (triangles){
+        out<<"CELLS "<<cells_count<<" "<<25*cells_count<<"\n";
+        for (int i=0;i<cells_count;i++){
+            out<<24<<" "<<5<<"\n";
+            const std::vector<int>& facelst = mCells.at(i).CellGetFaceList();//mCells[i].CellGetFaceList();
+            for (const auto& it:facelst){
+                out<<mFaces.at(it).GetNodeList().size();
+                for (auto nodes:mFaces.at(it).GetNodeList()){
+                    out<<" "<<nodes;
+                }
+                out<<"\n";
+            }
+        }
+    }
+
+    const bool hex = true;
+    if (hex){
+        out<<"CELLS "<<cells_count<<" "<<31*cells_count + cells_count<<"\n";
+        for (int i=0;i<cells_count;i++){
+            out<<31<<" "<<6<<"\n";
+
+            const std::vector<int>& facelst = mCells.at(i).CellGetFaceList();//mCells[i].CellGetFaceList();
+
+            for (const auto& it:facelst){
+                out<<mFaces.at(it).GetNodeList().size();
+                auto tempvar = mFaces.at(it).GetNodeList();
+                for (auto nodes:mFaces.at(it).GetNodeList()){
+                    out<<" "<<nodes;
+                }
+                out<<"\n";
+            }
+        }
+    }
+
+
+
+
+
+    out<<"CELL_TYPES "<<cells_count<<"\n";
+    for (int i=0;i<cells_count;i++) out<<42<<"\n";
+
+    out<<"CELL_DATA "<<cells_count<<"\n";
+    out<<"SCALARS debugname double 1\n";
+    out<<"LOOKUP_TABLE table1\n";
+    for (int i=0;i<cells_count;i++){
+        out<<data[i]<<" ";
+        if (i%10 == 0){
+            out<<"\n";
+        }
+    }
+
+
+    out.close();
+    std::cout<<"Mesh writing is complite!\n";
+    return true;
+}
 
 
 
