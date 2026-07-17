@@ -5,6 +5,12 @@
 #include <algorithm>
 #include <bits/shared_ptr.h>
 
+bool Mesh::ReadMesh(const std::string &filename){
+    return true;
+}
+void Mesh::WriteMesh(const std::string &filename){
+}
+
 Mesh::Mesh() {
     nodes_count = 0;
     ribs_count = 0;
@@ -16,6 +22,7 @@ bool Mesh::Read_msh_file(const std::string &filename) {
     return Read_msh_tetrahedrons(filename);
 }
 
+//reading for tetrahedrons in msh format
 bool Mesh::Read_msh_tetrahedrons(const std::string &filename)   {
     std::ifstream fin(filename);
     if (!fin){
@@ -218,7 +225,10 @@ bool Mesh::Read_SU2_file(const std::string &filename){
     std::ifstream input(filename);
     if (!input) return false;
     int ndim=-1;
-    input>>keyword;
+
+    while (keyword!="NDIME="){
+        input>>keyword;
+    }
     input>>ndim;
     
     if (ndim != 2){
@@ -226,7 +236,10 @@ bool Mesh::Read_SU2_file(const std::string &filename){
     } 
 
     int nelem=-1;
-    input>>keyword;
+    //input>>keyword;
+    while (keyword!="NELEM="){
+        input>>keyword;
+    }
     input>>nelem;
 
 
@@ -270,7 +283,11 @@ bool Mesh::Read_SU2_file(const std::string &filename){
 
     //MESH TOPOLOGY READING COMPLITE
     int npoints = -1;
-    input>>keyword;
+
+    //input>>keyword;
+    while (keyword!="NPOINT="){
+        input>>keyword;
+    }
     input>>npoints;
     std::vector<   std::vector<double>   > coords;
     if ( max_node_number_topology != (npoints-1) ){
@@ -308,36 +325,44 @@ bool Mesh::Read_SU2_file(const std::string &filename){
 
 
     //NMARK
-    int NMARKl;
+    int BC_COUNT;
    
-    input>>keyword;
-    input>>NMARKl;
-    using bc_set = std::vector<std::vector<int>>;
-    
-    std::vector<  bc_set >  boundary_conditions_topo;
-    std::vector<std::string> boundary_conditions_names;
- 
-    for (int i=0;i<NMARKl;i++){
-        std::string marker_tag;
+    //input>>keyword;
+    while (keyword!="NMARK="){
         input>>keyword;
-        input>>marker_tag;
-        bc_set loc_bc;
-        boundary_conditions_names.push_back(marker_tag);
+    }
+    input>>BC_COUNT;
+    using bc_set = std::vector< std::set<int> >; //array of  sets(of faces vertices)
+    
+    //std::vector< std::pair<bc_set , std::string>  >  boundary_conditions_topo;
+    std::map<std::set<int>,std::string>  boundary_conditions_topo;
+
+
+    //std::vector<std::string> boundary_conditions_names;
+ 
+    for (int i=0;i<BC_COUNT;i++){
+        std::string BC_name;
+        input>>keyword;
+        input>>BC_name;
+       // bc_set loc_bc;
+        //boundary_conditions_names.push_back(marker_tag);
         int marker_elems=-1;
         input>>keyword;
         input>>marker_elems;
         for (int j=0;j<marker_elems;j++){
-            int elem_number =-1;
-            std::vector<int> vert_set{0,0};
+            int elem_number =-1;   //3 - line
+            std::set<int> vert_set;
             
             input>>elem_number;
             if (elem_number == 3){
                 // its line
-                input>>vert_set[0];
-                input>>vert_set[1];
-                loc_bc.push_back(vert_set);
+                int v[2];
+                input>>v[0];
+                input>>v[1];
+                vert_set.insert({v[0],v[1],v[0]+ npoints, v[1]+npoints});
+                //loc_bc.push_back(vert_set);
             }
-            boundary_conditions_topo.push_back(loc_bc);
+            boundary_conditions_topo.insert({vert_set , BC_name});
         }
     }
     input.close();
@@ -359,9 +384,6 @@ bool Mesh::Read_SU2_file(const std::string &filename){
     for (int i=0;i<mesh_2d_base.size();i++){
         int nvert2d = mesh_2d_base[i].size();
         if (nvert2d == 4){
-            
-             
-
             auto elem_to_rib=[&](int v1, int v2){
                 int min_ind=v1;
                 int max_ind=v2;
@@ -379,6 +401,8 @@ bool Mesh::Read_SU2_file(const std::string &filename){
                 }
             };
             //circle on ribs on element
+
+
             
             int vert_ind[8];
             for (int j=0;j<8;j++){
@@ -386,7 +410,6 @@ bool Mesh::Read_SU2_file(const std::string &filename){
                 if (j>=4) shift=npoints;
 
                 vert_ind[ j ]  =  mesh_2d_base[i][j%4] + shift;
-                //TODO check this function
             }
 
             //DOWN_FACE RIBS
@@ -442,8 +465,6 @@ bool Mesh::Read_SU2_file(const std::string &filename){
                 }
             }
 
-
-            // TODO second face....3,4,5,6 faces
             //up face
             {
                 facearr[1].AddNode(vert_ind[4]);
@@ -616,7 +637,6 @@ bool Mesh::Read_SU2_file(const std::string &filename){
                 if (j>=3) shift=npoints;
 
                 vert_ind[ j ]  =  mesh_2d_base[i][j%3] + shift;
-                //TODO check this function
             }
 
             //DOWN_FACE
@@ -787,6 +807,10 @@ bool Mesh::Read_SU2_file(const std::string &filename){
         }//if (nvert2d == 3)
     }//for (int i=0;i<mesh_2d_base.size();i++)
 
+
+
+
+
     ribs_count = rib_counter;
     cells_count = ncell;
     faces_count = face_counter;
@@ -798,9 +822,24 @@ bool Mesh::Read_SU2_file(const std::string &filename){
     std::cout<<"Cells_count = "<<cells_count<<std::endl;
     std::cout<<"Face_count = "<<faces_count<<std::endl;
 
-    //return true;
-    prepare_all_mesh_data();
+    //TODO check mFaces for lable them as in boundary_conditions_topo
+    //std::sort(boundary_conditions_topo.begin(),boundary_conditions_topo.end());
 
+    for (int iface = 0;iface< faces_count;iface++){
+        std::vector<int>nodes = mFaces[iface].GetNodeList();
+        std::set<int> nodes_set ;
+        for (const auto& it:nodes){
+            nodes_set.insert(it);
+        }
+        if (boundary_conditions_topo.find(nodes_set)!= boundary_conditions_topo.end())
+        {
+            mFaces[iface].SetBC_tag( boundary_conditions_topo.at(nodes_set) );
+        }else{
+            if (mFaces[iface].GetRCell() < 0) mFaces[iface].SetBC_tag("symmetry");
+            else  mFaces[iface].SetBC_tag("inner");
+        }
+    }
+    prepare_all_mesh_data();
     return true;
 }
 //запись полиэдральной сетки в формате VTK
@@ -948,8 +987,6 @@ bool Mesh::Write_vtk_file_and_data(const std::string &filename, std::shared_ptr<
     std::cout<<"Mesh writing is complite!\n";
     return true;
 }
-
-
 
 void Mesh::prepare_all_mesh_data() {
     int cell_count = cellToFacesList.size();

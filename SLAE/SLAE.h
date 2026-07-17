@@ -13,6 +13,6 @@ static char help[] = "Solves a tridiagonal linear system with KSP.\n\n";
 
 int testfunc1(int argc, char*argv[]);
 int testfunc2(int argc, char*argv[]);
-
+int testfunc3(int argc, char*argv[]);
 
 #endif

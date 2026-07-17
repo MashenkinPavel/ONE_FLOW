@@ -1,0 +1,10 @@
+
+cgns_ut: cgns_ut.cpp
+	g++ cgns_ut.cpp -lcgns -o cgns_ut
+
+eigen_ut: eigen_ut.cpp
+	g++ eigen_ut.cpp  -o eigen_ut
+
+clean:
+	rm -f eigen_ut cgns_ut test.cgns
+

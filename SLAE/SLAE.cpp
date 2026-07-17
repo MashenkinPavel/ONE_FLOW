@@ -178,4 +178,56 @@ int testfunc2(int argc, char* argv[]){
 
 
     PetscFinalize();
+    return 0;
+}
+
+
+int testfunc3(int argc, char* argv[]){
+    Vec x, b, u; /* approx solution, RHS, exact solution */
+    Mat A; /* linear system matrix */
+    //PetscInitialize( &argc, &argv, 0, 0 );
+    //PetscPrintf( PETSC_COMM_WORLD, "Hello World\n" );
+    int rank,size;
+    PetscCallMPI(MPI_Comm_size(PETSC_COMM_WORLD, &size));
+    MPI_Comm_rank( PETSC_COMM_WORLD, &rank );
+
+
+    PetscSynchronizedPrintf( PETSC_COMM_WORLD,
+                             "Hello World from rank %d\n", rank );
+
+
+
+    //MatSetSizes(Mat A,PetscInt m,PetscInt n,PETSC_DETERMINE,PETSC_DETERMINE);
+    MatCreate(PETSC_COMM_WORLD,&A);
+    VecCreate(PETSC_COMM_WORLD,&x);
+    VecCreate(PETSC_COMM_WORLD,&b);
+
+
+
+    int m,n;
+    MatSetSizes(A,m,n,PETSC_DETERMINE,PETSC_DETERMINE);
+    MatSetType(A,MATAIJ);
+
+    //MatSetValues(Mat A,PetscInt m,PetscInt *im,PetscInt n,PetscInt *in,PetscScalar *values,INSERT_VALUES);
+
+
+
+    MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);
+    MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);
+
+
+    //After creating the matrix and vectors, solver creation
+    Mat Pmat;
+    MatCreate(PETSC_COMM_WORLD,&Pmat);
+    KSP ksp;
+    KSPCreate(PETSC_COMM_WORLD,&ksp);
+
+    KSPSetOperators( ksp,A,Pmat);
+    KSPSetFromOptions(ksp);
+    KSPSolve(ksp,b,x);
+    KSPDestroy(&ksp);
+
+    return 0;
+
+
 }

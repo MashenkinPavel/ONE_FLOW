@@ -8,10 +8,12 @@
 #include <vector>
 #include "node.h"
 #include <map>
+#include <string>
 
 
 class Face {
 private:
+    std::string BC_tag;   //( inner || symmetry || from_su2_file)
     std::vector<int> rib_list; //список индексов ребер из которых состоит грань
     std::vector<int> node_list; // nodes list of nodes numbers in face
     int left_cell=-1;              //index of left cell
@@ -22,6 +24,14 @@ private:
 public:
     Face();
     ~Face();
+    void SetBC_tag(const std::string& str){
+        BC_tag = str;
+    }
+    const std::string& GetBC_tag()const{
+        return BC_tag;
+    }
+
+
     void SetLCell(int lcell){
         left_cell = lcell;
     }
