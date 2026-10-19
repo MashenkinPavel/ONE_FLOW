@@ -37,7 +37,7 @@ TEST(MeshTest, 1cell_openFoam_read){
 TEST(MeshTest, ReadOpenFoamMesh){
     foam_mesh real_mesh;
     std::string path_to_meshfolder = "/home/pavel/STORAGE/WORK/CFD_PROGS/ONE_FLOW/MESH/tests/offsetCylinder/constant/polyMesh/";
-    printf("PATH = %s\n", path_to_meshfolder.c_str());
+    //printf("PATH = %s\n", path_to_meshfolder.c_str());
     bool OK = real_mesh.ReadMesh(path_to_meshfolder); 
     ASSERT_TRUE(OK);
     const int ncell = real_mesh.GetCellCount();
@@ -45,9 +45,6 @@ TEST(MeshTest, ReadOpenFoamMesh){
     for (int icell = 0;icell<ncell;icell++){
         glob_vol+= real_mesh.CellGetVolume(icell);
     }
-    
-    
-    
     
     std::cout<<"Task = offsetCylinder | Global_volume  = "<<glob_vol<<"\n";
     EXPECT_EQ( (int) (std::fabs( glob_vol - 73.7232) < 73.7232*0.0001), 1);

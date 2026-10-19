@@ -69,7 +69,7 @@
             std::array<double,3> vec3{x,y,z};  
             m_vertices.push_back(vec3);  
         }
-        printf("FILE = %s     Nvertices = %ld\n", path_to_file_vertices.c_str() ,m_vertices.size());
+        //printf("FILE = %s     Nvertices = %ld\n", path_to_file_vertices.c_str() ,m_vertices.size());
     }
 
 
@@ -114,7 +114,7 @@
             }
             
         }
-        printf("FILE = %s     Nfaces = %ld\n", path_to_file_faces.c_str() ,m_faces2vertices.size());
+        //printf("FILE = %s     Nfaces = %ld\n", path_to_file_faces.c_str() ,m_faces2vertices.size());
     }
 
     void foam_mesh::read_owner(std::string path_to_meshfolder){
@@ -178,7 +178,7 @@
             mCellCount = Ncell;
         }
     
-        printf("FILE = %s     N_owner = %ld\n", path_to_file_owner.c_str() ,m_owner.size());
+        //printf("FILE = %s     N_owner = %ld\n", path_to_file_owner.c_str() ,m_owner.size());
     }
 
     void foam_mesh::read_neighbour(std::string path_to_meshfolder){
@@ -220,7 +220,7 @@
         for (int i=0;i<count;i++){
             m_neighbour[i] = numbers[i+1];
         }
-        printf("FILE = %s     Nneighbour = %ld\n", path_to_file_neighbour.c_str() ,m_neighbour.size());
+        //printf("FILE = %s     Nneighbour = %ld\n", path_to_file_neighbour.c_str() ,m_neighbour.size());
     }
 
     void foam_mesh::read_boundary(std::string path_to_meshfolder){
@@ -263,7 +263,7 @@
             std::string patch_name;
             content_stream>>patch_name;
             Patch localpatch;
-            fprintf(stdout,"----------------- patchname = %s ----------------------\n",patch_name.c_str());
+            //fprintf(stdout,"----------------- patchname = %s ----------------------\n",patch_name.c_str());
             localpatch.set_name(patch_name);
             char ch;
             content_stream >> ch;
@@ -277,7 +277,7 @@
                             std::string attribute_name;
                             content_stream>>attribute_name;
                             attribute_name.erase(attribute_name.end()-1);
-                            fprintf(stdout, "param_name = %s  with attribute = %s\n",param_name.c_str(), attribute_name.c_str());
+                            //fprintf(stdout, "param_name = %s  with attribute = %s\n",param_name.c_str(), attribute_name.c_str());
                             
                             localpatch.set_type(attribute_name);
 
@@ -286,21 +286,21 @@
                             content_stream>>attribute_name;
                             attribute_name.erase(attribute_name.end()-1);
                             int nFaces = std::stoi(attribute_name);
-                            fprintf(stdout, "param_name = %s  with attribute = %s\n",param_name.c_str(), attribute_name.c_str());
+                            //fprintf(stdout, "param_name = %s  with attribute = %s\n",param_name.c_str(), attribute_name.c_str());
                             localpatch.set_nFaces(nFaces);
                         }else if (param_name == "startFace"){
                             std::string attribute_name;
                             content_stream>>attribute_name;
                             attribute_name.erase(attribute_name.end()-1);
                             int startFace = std::stoi(attribute_name);
-                            fprintf(stdout, "param_name = %s  with attribute = %s\n",param_name.c_str(), attribute_name.c_str());
+                            //fprintf(stdout, "param_name = %s  with attribute = %s\n",param_name.c_str(), attribute_name.c_str());
                             localpatch.set_startFace(startFace);
                         }else {
                             //std::string attribute_name;
                             char buf[1024];
                             content_stream.getline(buf,1024);
                             //content_stream>>attribute_name;
-                            fprintf(stderr, "unknown param = %s   with attribute = %s\n", param_name.c_str(), buf);
+                            //fprintf(stderr, "unknown param = %s   with attribute = %s\n", param_name.c_str(), buf);
                         }
                     }
                 }
