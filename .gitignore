@@ -4,6 +4,7 @@
 /.idea
 /test_data
 *.vtk
+*.vtu
 /CMakeFiles
 CMakeCache.txt
 Makefile

@@ -6,6 +6,7 @@
 #include <regex>
 #include <assert.h>
 #include <set>
+#include <numeric>
 
 #include <foam_mesh.h>
 #include <vector_operations.h>
@@ -22,8 +23,194 @@
         return OK;
     }
     
-    void foam_mesh::WriteMesh(const std::string &filename) {
+    void foam_mesh::WriteMesh(const std::string &path_to_meshfolder) {
+        // VTK XML Unstructured Grid (VTU) - POLYHEDRON cell type
+        // Correct format: connectivity (unique vertices) + faces/faceoffsets
         
+        const int ncells = GetCellCount();
+        const int nvertices = m_vertices.size();
+        
+        if (ncells <= 0 || nvertices <= 0) return;
+        
+        // Collect cell face vertex lists and all used vertices
+        std::set<int> used_vertices;
+        std::vector<std::vector<std::vector<int>>> cell_face_vertex_lists(ncells);
+        
+        for (int icell = 0; icell < ncells; icell++){
+            const auto& face_set = m_cell2faces[icell];
+            cell_face_vertex_lists[icell].reserve(face_set.size());
+            for (int f : face_set){
+                auto& fv = m_faces2vertices[f];
+                cell_face_vertex_lists[icell].push_back(fv);
+                for (int v : fv) used_vertices.insert(v);
+            }
+        }
+        
+        if (used_vertices.empty()) return;
+        
+        // Build vertex index map (original -> VTK index)
+        std::map<int, int> vertex_index_map;
+        int vtk_vert_idx = 0;
+        for (int v : used_vertices){
+            vertex_index_map[v] = vtk_vert_idx++;
+        }
+        
+        // Determine output path - write VTK to the parent directory of polyMesh
+        std::string output_path = path_to_meshfolder;
+        if (!output_path.empty() && output_path.back() == '/')
+            output_path.pop_back();
+        
+        // output_path is like ".../case_dir/constant/polyMesh"
+        // Write to ".../case_dir/case_dir.vtu"
+        // Find "constant" directory
+        size_t const_pos = output_path.rfind("/constant");
+        std::string parent_dir;
+        std::string mesh_name;
+        if (const_pos != std::string::npos){
+            parent_dir = output_path.substr(0, const_pos); // ".../case_dir"
+            size_t name_slash = parent_dir.find_last_of('/');
+            mesh_name = (name_slash != std::string::npos) 
+                ? parent_dir.substr(name_slash + 1) : parent_dir;
+        } else {
+            // Fallback: no "constant" in path
+            parent_dir = output_path;
+            size_t last_slash = output_path.find_last_of('/');
+            mesh_name = (last_slash != std::string::npos) 
+                ? output_path.substr(last_slash + 1) : output_path;
+        }
+        std::string vtu_file = parent_dir + "/" + mesh_name + ".vtu";
+        
+        std::ofstream vtu(vtu_file);
+        if (!vtu) throw std::runtime_error("Cannot create VTU file: " + vtu_file);
+        
+        // === XML HEADER ===
+        vtu << "<?xml version=\"1.0\"?>" << std::endl;
+        vtu << "<VTKFile type=\"UnstructuredGrid\" version=\"1.0\" byte_order=\"LittleEndian\" format=\"ascii\">" << std::endl;
+        vtu << "  <UnstructuredGrid>" << std::endl;
+        vtu << "    <Piece NumberOfPoints=\"" << used_vertices.size() 
+            << "\" NumberOfCells=\"" << ncells << "\">" << std::endl;
+        
+        // === POINTS ===
+        vtu << "      <Points>" << std::endl;
+        vtu << "        <DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">" << std::endl;
+        for (int v : used_vertices){
+            vtu << "          " << m_vertices[v][0] << " " 
+                << m_vertices[v][1] << " " << m_vertices[v][2] << std::endl;
+        }
+        vtu << "        </DataArray>" << std::endl;
+        vtu << "      </Points>" << std::endl;
+        
+        // === CELLS ===
+        // For VTK_POLYHEDRON (type 42):
+        // connectivity: unique vertex indices for each cell (sorted)
+        // offsets: cumulative count of connectivity values
+        // types: 42 for all cells
+        // faces: for each cell: Nfaces, then for each face: Nv v0 v1...
+        // faceoffsets: cumulative count of faces array values
+        
+        // Build connectivity (unique vertices per cell, sorted)
+        std::vector<int> connectivity;
+        std::vector<int> offsets(ncells);
+        std::vector<int> faceoffsets(ncells);
+        std::vector<int> faces;
+        
+        int total_conn = 0;
+        int total_faces = 0;
+        
+        for (int icell = 0; icell < ncells; icell++){
+            offsets[icell] = total_conn;
+            
+            // Collect unique vertices for this cell
+            std::set<int> cell_verts;
+            for (auto& fv : cell_face_vertex_lists[icell]){
+                for (int v : fv){
+                    cell_verts.insert(vertex_index_map[v]);
+                }
+            }
+            
+            // Write connectivity (sorted unique vertices)
+            for (int v : cell_verts){
+                connectivity.push_back(v);
+                total_conn++;
+            }
+            
+            // Write faces: Nfaces, then for each face: Nv v0 v1...
+            faces.push_back((int)cell_face_vertex_lists[icell].size()); // Nfaces
+            total_faces++;
+            for (auto& fv : cell_face_vertex_lists[icell]){
+                faces.push_back((int)fv.size()); // Nv
+                total_faces++;
+                for (int v : fv){
+                    faces.push_back(vertex_index_map[v]);
+                    total_faces++;
+                }
+            }
+            faceoffsets[icell] = total_faces;
+        }
+        
+        vtu << "      <Cells>" << std::endl;
+        
+        // Connectivity
+        vtu << "        <DataArray type=\"Int64\" Name=\"connectivity\" format=\"ascii\">" << std::endl;
+        for (int i = 0; i < (int)connectivity.size(); i++){
+            vtu << "          " << connectivity[i] << std::endl;
+        }
+        vtu << "        </DataArray>" << std::endl;
+        
+        // Offsets - cumulative count of connectivity values (unique vertices)
+        vtu << "        <DataArray type=\"Int64\" Name=\"offsets\" format=\"ascii\">" << std::endl;
+        for (int icell = 0; icell < ncells; icell++){
+            // Count unique vertices for this cell
+            int n_unique_verts = 0;
+            std::set<int> local_verts;
+            for (auto& fv : cell_face_vertex_lists[icell]){
+                for (int v : fv){
+                    local_verts.insert(vertex_index_map[v]);
+                }
+            }
+            n_unique_verts = (int)local_verts.size();
+            vtu << "          " << offsets[icell] + n_unique_verts << std::endl;
+        }
+        vtu << "        </DataArray>" << std::endl;
+        
+        // Types
+        vtu << "        <DataArray type=\"UInt8\" Name=\"types\" format=\"ascii\">" << std::endl;
+        for (int icell = 0; icell < ncells; icell++){
+            vtu << "          42" << std::endl; // VTK_POLYHEDRON
+        }
+        vtu << "        </DataArray>" << std::endl;
+        
+        // Faces
+        vtu << "        <DataArray type=\"Int64\" Name=\"faces\" format=\"ascii\">" << std::endl;
+        for (int i = 0; i < (int)faces.size(); i++){
+            vtu << "          " << faces[i] << std::endl;
+        }
+        vtu << "        </DataArray>" << std::endl;
+        
+        // Face offsets - cumulative count of faces values
+        vtu << "        <DataArray type=\"Int64\" Name=\"faceoffsets\" format=\"ascii\">" << std::endl;
+        for (int icell = 0; icell < ncells; icell++){
+            vtu << "          " << faceoffsets[icell] << std::endl;
+        }
+        vtu << "        </DataArray>" << std::endl;
+        
+        vtu << "      </Cells>" << std::endl;
+        
+        // === CELL_DATA (cell volumes) ===
+        vtu << "      <CellData Scalars=\"cell_volume\">" << std::endl;
+        vtu << "        <DataArray type=\"Float64\" Name=\"cell_volume\" format=\"ascii\">" << std::endl;
+        for (int icell = 0; icell < ncells; icell++){
+            vtu << "          " << m_cell_volume[icell] << std::endl;
+        }
+        vtu << "        </DataArray>" << std::endl;
+        vtu << "      </CellData>" << std::endl;
+        
+        // === CLOSE PIECE/GRID/FILE ===
+        vtu << "    </Piece>" << std::endl;
+        vtu << "  </UnstructuredGrid>" << std::endl;
+        vtu << "</VTKFile>" << std::endl;
+        
+        vtu.close();
     }
     
     void foam_mesh::read_vertices(std::string path_to_meshfolder){
