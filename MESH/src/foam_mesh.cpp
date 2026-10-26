@@ -32,6 +32,7 @@
             //std::cout << entry.path().filename()<<std::endl;
             if (entry.path().filename() == "points"){
                 path_to_file_vertices = path_to_meshfolder/entry.path().filename();
+                break;
             }
         }
         std::fstream file(path_to_file_vertices);
@@ -79,6 +80,7 @@
             //std::cout << entry.path().filename()<<std::endl;
             if (entry.path().filename() == "faces"){
                 path_to_file_faces = path_to_meshfolder/entry.path().filename();
+                break;
             }
         }
         std::fstream file(path_to_file_faces);
@@ -123,6 +125,7 @@
             //std::cout << entry.path().filename()<<std::endl;
             if (entry.path().filename() == "owner"){
                 path_to_file_owner = path_to_meshfolder/entry.path().filename();
+                break;
             }
         }
         std::fstream file(path_to_file_owner);
@@ -187,6 +190,7 @@
             //std::cout << entry.path().filename()<<std::endl;
             if (entry.path().filename() == "neighbour"){
                 path_to_file_neighbour = path_to_meshfolder/entry.path().filename();
+                break;
             }
         }
         std::fstream file(path_to_file_neighbour);
@@ -229,6 +233,7 @@
             //std::cout << entry.path().filename()<<std::endl;
             if (entry.path().filename() == "boundary"){
                 path_to_file_boundary = path_to_meshfolder/entry.path().filename();
+                break;
             }
         }
         std::fstream file(path_to_file_boundary);
