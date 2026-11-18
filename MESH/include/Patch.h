@@ -24,6 +24,7 @@ std::string get_name()const {
     return m_name;
 }
 void set_type(const std::string& type_name){
+    m_type_name = type_name;
     if (type_name == "patch"){
         m_patchtype = PatchType::Patch;
     }else if (type_name == "wall"){
@@ -31,6 +32,9 @@ void set_type(const std::string& type_name){
     }else{
         m_patchtype = PatchType::Empty;
     }
+}
+std::string get_type()const {
+    return m_type_name;
 }
 void set_nFaces(int nfaces){
     m_facecount = nfaces;
@@ -50,6 +54,7 @@ int get_startFace()const{
 private:
     PatchType m_patchtype;
     std::string m_name;
+    std::string m_type_name;
     int m_startface = -1;
     int m_facecount = -1; 
     std::shared_ptr<BC> sptr_bc;

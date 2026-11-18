@@ -511,13 +511,72 @@
         else Neib.reset();
     }
 
-    int foam_mesh::GetFaceCount(){
+    int foam_mesh::GetFaceCount() const {
         return m_owner.size();
     }
 
-    int foam_mesh::GetCellCount(){
+    int foam_mesh::GetCellCount() const {
         return mCellCount;
         //m_owner.size();
+    }
+
+    std::pair<int,int> foam_mesh::FaceCells(int faceIdx) const {
+        int owner = m_owner[faceIdx];
+        int neighbour = -1;
+        if (faceIdx < (int)m_neighbour.size()) {
+            neighbour = m_neighbour[faceIdx];
+        }
+        return {owner, neighbour};
+    }
+
+    std::string foam_mesh::FaceBC(int faceIdx) const {
+        // Boundary faces start after internal faces
+        if (faceIdx >= (int)m_neighbour.size()) {
+            for (const auto& [name, patch] : m_Patches) {
+                int start = patch.get_startFace();
+                int count = patch.get_nFaces();
+                if (faceIdx >= start && faceIdx < start + count) {
+                    return name;
+                }
+            }
+        }
+        return "inner";
+    }
+
+    std::string foam_mesh::PatchName(int patchIdx) const {
+        int i = 0;
+        for (const auto& [name, patch] : m_Patches) {
+            if (i == patchIdx) return name;
+            i++;
+        }
+        return "";
+    }
+
+    std::string foam_mesh::PatchType(int patchIdx) const {
+        int i = 0;
+        for (const auto& [name, patch] : m_Patches) {
+            if (i == patchIdx) return patch.get_type();
+            i++;
+        }
+        return "";
+    }
+
+    int foam_mesh::PatchFaceStart(int patchIdx) const {
+        int i = 0;
+        for (const auto& [name, patch] : m_Patches) {
+            if (i == patchIdx) return patch.get_startFace();
+            i++;
+        }
+        return -1;
+    }
+
+    int foam_mesh::PatchFaceCount(int patchIdx) const {
+        int i = 0;
+        for (const auto& [name, patch] : m_Patches) {
+            if (i == patchIdx) return patch.get_nFaces();
+            i++;
+        }
+        return 0;
     }
 
     void foam_mesh::prepare_cell_2_faces(){
@@ -726,7 +785,7 @@ bool foam_mesh::check_mesh(){
     */
     const int Ncell = GetCellCount();
     for (int icell = 0;icell<Ncell;icell++){
-        std::set<int> facelist = CellGetFaceList(icell);
+        std::set<int> facelist = CellFaceList(icell);
         std::array<double,3> err3;
         err3[0] = 0.; err3[1] = 0.; err3[2] = 0.;
         for (const int iface:facelist){

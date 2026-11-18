@@ -5,7 +5,9 @@
 #include <string>
 #include <map>
 #include <set>
+#include <optional>
 #include <Patch.h>
+#include <utility>
 
 
 
@@ -16,43 +18,64 @@ public:
     ~foam_mesh() = default;
     bool ReadMesh(const std::string &path_to_meshfolder) override;
     void WriteMesh(const std::string &path_to_meshfolder) override;
-    int GetFaceCount();
-    int GetCellCount();
     void GetFace2OwnerNeibCell(int face, std::optional<int>& Owner, std::optional<int>& Neib);
 
     
     
     
-    std::array<double,3> CellGetCenter(int icell){
+    std::array<double,3> CellGetCenter(int icell) const {
         return m_cell_center[icell];
     }
-    double CellGetVolume(int icell){
+    double CellGetVolume(int icell) const {
         return m_cell_volume[icell];
     }
 
-    std::array<double,3> FaceGetCenter(int iface){
+    std::array<double,3> FaceGetCenter(int iface) const {
         return m_face_center[iface];
     }
 
-    double FaceGetSquare(int iface){
+    double FaceGetSquare(int iface) const {
         return m_face_square[iface];
     }
-    std::array<double,3> FaceGetnorm(int iface){
+    std::array<double,3> FaceGetnorm(int iface) const {
         return m_face_norm[iface];
     }
 
 
-    std::set<int> CellGetFaceList(int icell){
-        return m_cell2faces[icell];
-    }
+    // ===== IMesh interface =====
+    int GetFaceCount() const override;
+    int GetCellCount() const override;
+    int GetInternalFaceCount() const override { return (int)m_neighbour.size(); }
+    int GetBoundaryFaceCount() const override { return (int)m_owner.size() - (int)m_neighbour.size(); }
+    int GetPatchCount() const override { return (int)m_Patches.size(); }
 
-    std::vector<int> FaceGetVertexList(int iface){
+    std::pair<int,int> CellRange() const override { return {0, mCellCount}; }
+    std::pair<int,int> InternalFaceRange() const override { return {0, (int)m_neighbour.size()}; }
+    std::pair<int,int> BoundaryFaceRange() const override { return {(int)m_neighbour.size(), (int)m_owner.size()}; }
+    std::pair<int,int> AllFaceRange() const override { return {0, (int)m_owner.size()}; }
+
+    std::pair<int,int> FaceCells(int faceIdx) const override;
+    std::string FaceBC(int faceIdx) const override;
+    std::array<double,3> FaceCenter(int faceIdx) const override { return FaceGetCenter(faceIdx); }
+    std::array<double,3> FaceNormal(int faceIdx) const override { return FaceGetnorm(faceIdx); }
+    double FaceArea(int faceIdx) const override { return FaceGetSquare(faceIdx); }
+
+    std::set<int> CellFaceList(int cellIdx) const override { return m_cell2faces.at(cellIdx); }
+    std::array<double,3> CellCenter(int cellIdx) const override { return CellGetCenter(cellIdx); }
+    double CellVolume(int cellIdx) const override { return CellGetVolume(cellIdx); }
+
+    std::vector<int> FaceGetVertexList(int iface) {
         return m_faces2vertices[iface];
     }
 
-    std::array<double,3> VertexGetCoord(int ivert){
+    std::array<double,3> VertexGetCoord(int ivert) {
         return m_vertices[ivert];
     }
+
+    std::string PatchName(int patchIdx) const override;
+    std::string PatchType(int patchIdx) const override;
+    int PatchFaceStart(int patchIdx) const override;
+    int PatchFaceCount(int patchIdx) const override;
     
 private:
     void read_vertices(std::string path_to_meshfolder);

@@ -3,6 +3,7 @@
 #include <iostream>
 #include <map>
 #include <algorithm>
+#include <cmath>
 #include <bits/shared_ptr.h>
 
 bool Mesh::ReadMesh(const std::string &filename){
@@ -1004,4 +1005,113 @@ void Mesh::prepare_all_mesh_data() {
         objcell.CellSetFaceList(vecfacelist);
         mCells[cellnum] = objcell;
     }
+
+    // Pre-compute internal and boundary face indices
+    internal_face_indices_.clear();
+    boundary_face_indices_.clear();
+    for (int i = 0; i < faces_count; ++i) {
+        if (mFaces[i].GetRCell() >= 0) {
+            internal_face_indices_.push_back(i);
+        } else {
+            boundary_face_indices_.push_back(i);
+        }
+    }
+}
+
+std::pair<int,int> Mesh::FaceCells(int faceIdx) const {
+    return {mFaces[faceIdx].GetLCell(), mFaces[faceIdx].GetRCell()};
+}
+
+std::string Mesh::FaceBC(int faceIdx) const {
+    return mFaces[faceIdx].GetBC_tag();
+}
+
+std::array<double,3> Mesh::FaceCenter(int faceIdx) const {
+    const auto& nodes = mFaces[faceIdx].GetNodeList();
+    std::array<double,3> center{0.0, 0.0, 0.0};
+    for (int nidx : nodes) {
+        center[0] += mNodeCoords[nidx].GetX();
+        center[1] += mNodeCoords[nidx].GetY();
+        center[2] += mNodeCoords[nidx].GetZ();
+    }
+    double invN = 1.0 / nodes.size();
+    center[0] *= invN;
+    center[1] *= invN;
+    center[2] *= invN;
+    return center;
+}
+
+std::array<double,3> Mesh::FaceNormal(int faceIdx) const {
+    const auto& nodes = mFaces[faceIdx].GetNodeList();
+    if (nodes.size() < 3) return {0.0, 0.0, 0.0};
+    
+    // Compute normal via cross product of two edges
+    std::array<double,3> v1 = {
+        mNodeCoords[nodes[1]].GetX() - mNodeCoords[nodes[0]].GetX(),
+        mNodeCoords[nodes[1]].GetY() - mNodeCoords[nodes[0]].GetY(),
+        mNodeCoords[nodes[1]].GetZ() - mNodeCoords[nodes[0]].GetZ()
+    };
+    std::array<double,3> v2 = {
+        mNodeCoords[nodes[2]].GetX() - mNodeCoords[nodes[0]].GetX(),
+        mNodeCoords[nodes[2]].GetY() - mNodeCoords[nodes[0]].GetY(),
+        mNodeCoords[nodes[2]].GetZ() - mNodeCoords[nodes[0]].GetZ()
+    };
+    
+    std::array<double,3> n = {
+        v1[1]*v2[2] - v1[2]*v2[1],
+        v1[2]*v2[0] - v1[0]*v2[2],
+        v1[0]*v2[1] - v1[1]*v2[0]
+    };
+    
+    double len = std::sqrt(n[0]*n[0] + n[1]*n[1] + n[2]*n[2]);
+    if (len > 1e-12) {
+        n[0] /= len; n[1] /= len; n[2] /= len;
+    }
+    return n;
+}
+
+double Mesh::FaceArea(int faceIdx) const {
+    const auto& nodes = mFaces[faceIdx].GetNodeList();
+    if (nodes.size() < 3) return 0.0;
+    
+    std::array<double,3> v1 = {
+        mNodeCoords[nodes[1]].GetX() - mNodeCoords[nodes[0]].GetX(),
+        mNodeCoords[nodes[1]].GetY() - mNodeCoords[nodes[0]].GetY(),
+        mNodeCoords[nodes[1]].GetZ() - mNodeCoords[nodes[0]].GetZ()
+    };
+    std::array<double,3> v2 = {
+        mNodeCoords[nodes[2]].GetX() - mNodeCoords[nodes[0]].GetX(),
+        mNodeCoords[nodes[2]].GetY() - mNodeCoords[nodes[0]].GetY(),
+        mNodeCoords[nodes[2]].GetZ() - mNodeCoords[nodes[0]].GetZ()
+    };
+    
+    std::array<double,3> cross = {
+        v1[1]*v2[2] - v1[2]*v2[1],
+        v1[2]*v2[0] - v1[0]*v2[2],
+        v1[0]*v2[1] - v1[1]*v2[0]
+    };
+    
+    return 0.5 * std::sqrt(cross[0]*cross[0] + cross[1]*cross[1] + cross[2]*cross[2]);
+}
+
+std::array<double,3> Mesh::CellCenter(int cellIdx) const {
+    const auto& faces = mCells[cellIdx].CellGetFaceList();
+    std::array<double,3> center{0.0, 0.0, 0.0};
+    for (int fidx : faces) {
+        const auto& fc = FaceCenter(fidx);
+        center[0] += fc[0];
+        center[1] += fc[1];
+        center[2] += fc[2];
+    }
+    double invN = 1.0 / faces.size();
+    center[0] *= invN;
+    center[1] *= invN;
+    center[2] *= invN;
+    return center;
+}
+
+double Mesh::CellVolume(int cellIdx) const {
+    // Simple approximation: sum of pyramid volumes (face_center -> cell_center)
+    // For now return 0.0 — implement if needed
+    return 0.0;
 }

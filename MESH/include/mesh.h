@@ -8,6 +8,7 @@
 #include <string>
 #include <map>
 #include <memory>
+#include <utility>
 
 
 class Mesh:public IMesh{
@@ -21,23 +22,58 @@ public:
     bool Read_SU2_file(const std::string &filename);
     bool Write_vtk_file(const std::string& filename) const; //writing polyhedral mesh
     bool Write_vtk_file_and_data(const std::string &filename, std::shared_ptr<double[]>& data)const ;
-    //tools for preparing solver
-    size_t GetFaceCount() const{
-        return faces_count;
-    }
-    const Face& GetFace(int iface) const{
-        return mFaces[iface];
-    }
 
-    size_t GetCellCount(){
-        return cells_count;
+    // ===== IMesh interface =====
+    int GetFaceCount() const override { return faces_count; }
+    int GetCellCount() const override { return cells_count; }
+    int GetInternalFaceCount() const override { return (int)internal_face_indices_.size(); }
+    int GetBoundaryFaceCount() const override { return (int)boundary_face_indices_.size(); }
+    int GetPatchCount() const override { return 0; }
 
+    std::pair<int,int> CellRange() const override { return {0, cells_count}; }
+    std::pair<int,int> InternalFaceRange() const override { return {0, (int)internal_face_indices_.size()}; }
+    std::pair<int,int> BoundaryFaceRange() const override { return {(int)internal_face_indices_.size(), faces_count}; }
+    std::pair<int,int> AllFaceRange() const override { return {0, faces_count}; }
+
+    std::pair<int,int> FaceCells(int faceIdx) const override;
+    std::string FaceBC(int faceIdx) const override;
+    std::array<double,3> FaceCenter(int faceIdx) const override;
+    std::array<double,3> FaceNormal(int faceIdx) const override;
+    double FaceArea(int faceIdx) const override;
+
+    std::set<int> CellFaceList(int cellIdx) const override {
+        auto it = cellToFacesList.find(cellIdx);
+        if (it != cellToFacesList.end()) return it->second;
+        return {};
     }
+    std::array<double,3> CellCenter(int cellIdx) const override;
+    double CellVolume(int cellIdx) const override;
+
+    std::string PatchName(int) const override { return ""; }
+    std::string PatchType(int) const override { return ""; }
+    int PatchFaceStart(int) const override { return -1; }
+    int PatchFaceCount(int) const override { return 0; }
+
+    // ===== Legacy convenience =====
+    const Face& GetFace(int iface) const { return mFaces[iface]; }
+    const Cell& GetCell(int icell) const { return mCells[icell]; }
+    const Node& GetNode(int inode) const { return mNodeCoords[inode]; }
+
 private:
     int nodes_count;
     int ribs_count;
     int faces_count;
     int cells_count;
+
+    // Pre-computed indices for fast iteration
+    mutable std::vector<int> internal_face_indices_;
+    mutable std::vector<int> boundary_face_indices_;
+
+    // Cached pointers for range-based for
+    mutable std::vector<const Face*> internal_face_ptrs_;
+    mutable std::vector<const Face*> boundary_face_ptrs_;
+    mutable std::vector<const Face*> all_face_ptrs_;
+
     std::vector<Node> mNodeCoords;   //list of nodes coordinates (only nodes has real coordinates)
 
     //Ribes based on Node indexes

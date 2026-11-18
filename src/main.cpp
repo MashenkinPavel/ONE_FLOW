@@ -26,6 +26,10 @@ int main( int argc, char* argv[] ){
 
         sp_mesh->ReadMesh(mesh_path);
         sp_mesh->WriteMesh(out_dir);  
+        std::shared_ptr<CGeneralSettings> sp_gsettings = std::make_shared<CGeneralSettings>();
+        sp_log = std::make_shared<Logger>("log.out");
+        sp_solver = std::make_shared<CSimple>(sp_mesh,sp_gsettings,sp_log);
+
         return 0;
     }
 
