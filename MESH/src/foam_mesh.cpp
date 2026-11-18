@@ -55,30 +55,7 @@
             vertex_index_map[v] = vtk_vert_idx++;
         }
         
-        // Determine output path - write VTK to the parent directory of polyMesh
-        std::string output_path = path_to_meshfolder;
-        if (!output_path.empty() && output_path.back() == '/')
-            output_path.pop_back();
-        
-        // output_path is like ".../case_dir/constant/polyMesh"
-        // Write to ".../case_dir/case_dir.vtu"
-        // Find "constant" directory
-        size_t const_pos = output_path.rfind("/constant");
-        std::string parent_dir;
-        std::string mesh_name;
-        if (const_pos != std::string::npos){
-            parent_dir = output_path.substr(0, const_pos); // ".../case_dir"
-            size_t name_slash = parent_dir.find_last_of('/');
-            mesh_name = (name_slash != std::string::npos) 
-                ? parent_dir.substr(name_slash + 1) : parent_dir;
-        } else {
-            // Fallback: no "constant" in path
-            parent_dir = output_path;
-            size_t last_slash = output_path.find_last_of('/');
-            mesh_name = (last_slash != std::string::npos) 
-                ? output_path.substr(last_slash + 1) : output_path;
-        }
-        std::string vtu_file = parent_dir + "/" + mesh_name + ".vtu";
+        std::string vtu_file = path_to_meshfolder + "/" + "MESH" + ".vtu";
         
         std::ofstream vtu(vtu_file);
         if (!vtu) throw std::runtime_error("Cannot create VTU file: " + vtu_file);
@@ -198,12 +175,37 @@
         
         // === CELL_DATA (cell volumes) ===
         vtu << "      <CellData Scalars=\"cell_volume\">" << std::endl;
+        
         vtu << "        <DataArray type=\"Float64\" Name=\"cell_volume\" format=\"ascii\">" << std::endl;
         for (int icell = 0; icell < ncells; icell++){
             vtu << "          " << m_cell_volume[icell] << std::endl;
         }
         vtu << "        </DataArray>" << std::endl;
+
+        vtu << "        <DataArray type=\"Float64\" Name=\"cell_x\" format=\"ascii\">" << std::endl;
+        for (int icell = 0; icell < ncells; icell++){
+            vtu << "          " << m_cell_center[icell][0] << std::endl;
+        }
+        vtu << "        </DataArray>" << std::endl;
+
+        vtu << "        <DataArray type=\"Float64\" Name=\"cell_y\" format=\"ascii\">" << std::endl;
+        for (int icell = 0; icell < ncells; icell++){
+            vtu << "          " << m_cell_center[icell][1] << std::endl;
+        }
+        vtu << "        </DataArray>" << std::endl;
+
+
+        vtu << "        <DataArray type=\"Float64\" Name=\"cell_z\" format=\"ascii\">" << std::endl;
+        for (int icell = 0; icell < ncells; icell++){
+            vtu << "          " << m_cell_center[icell][2] << std::endl;
+        }
+        vtu << "        </DataArray>" << std::endl;
+
+
+
         vtu << "      </CellData>" << std::endl;
+
+
         
         // === CLOSE PIECE/GRID/FILE ===
         vtu << "    </Piece>" << std::endl;

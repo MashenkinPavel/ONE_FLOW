@@ -15,9 +15,11 @@ set(CMAKE_CXX_STANDARD 20)
 project(ONE_FLOW)
 
 add_subdirectory(MESH)
+add_subdirectory(CFD)
 add_subdirectory(src)
 
 target_link_libraries(ONE_FLOW PRIVATE ONE_MESH)
+target_link_libraries(ONE_FLOW PRIVATE ONE_CFD)
 
 
 #include_directories(.)
